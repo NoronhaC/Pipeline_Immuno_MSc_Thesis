@@ -6,8 +6,8 @@ import csv
 import graphviz
 import shutil
 
-# Functions
 
+# Functions
 
 def get_fluoro_labels(sample, events):
     """
@@ -82,6 +82,20 @@ def extract_data(gate, gate_path, gate_pct, mfi_comp, parent, sample, sample_id,
                          .relative_percent)
 
     # add the value to the gate percentages dictionary
+    gate_name = ''
+    if pre == 'Thoming':
+        if th1_gate(gate=gate, gate_path=gate_path, parent=parent):
+            gate_name = gate + " Th1" if "th1" not in gate.lower() else gate
+        elif th2_gate(gate, gate_path, parent):
+            gate_name = gate + " Th2" if "th2" not in gate.lower() else gate
+        elif th17_gate(gate, gate_path, parent):
+            gate_name = gate + " Th17" if "th17" not in gate.lower() else gate
+        elif th1star_gate(gate, gate_path, parent):
+            gate_name = gate + " Th1*" if "th1*" not in gate.lower() or "th1+" not in gate.lower() else gate
+        elif tscm_gate(gate, gate_path, parent):
+            gate_name = gate + " Tscm" if "tscm" not in gate.lower() else gate
+        gate_pct[f'{parent} | {gate_name}'] = round(relative_pct, 3)
+
     gate_pct[f'{parent} | {gate}'] = round(relative_pct, 3)
 
     # Now to calculate the MFI
@@ -123,9 +137,9 @@ def extract_data(gate, gate_path, gate_pct, mfi_comp, parent, sample, sample_id,
 
         idx = indices_dict[gate]
 
-        if gate in indices_dict: # if the gate is in the dictionary
+        if gate in indices_dict:  # if the gate is in the dictionary
             mfi = round(gate_mfi[idx], 2)
-            if mfi != mfi: # if there are no events, the mfi dataframe will not have the index found
+            if mfi != mfi:  # if there are no events, the mfi dataframe will not have the index found
                 mfi_comp[f'{parent} | {gate}'] = 'No Events'
             else:
                 mfi_comp[f'{parent} | {gate}'] = mfi
@@ -171,7 +185,7 @@ def extract_data(gate, gate_path, gate_pct, mfi_comp, parent, sample, sample_id,
 
         indices_dict = labels_dict[list_num]
 
-        gates = {} # Gates data structure
+        gates = {}  # Gates data structure
 
         # Add gates to the gates data structure given the gate being handled
         if gate in tcm_gate_aliases:
@@ -233,10 +247,10 @@ def extract_data(gate, gate_path, gate_pct, mfi_comp, parent, sample, sample_id,
 
         indices_dict = labels_dict[list_num]
 
-        gates = {} # Gates data structure
+        gates = {}  # Gates data structure
 
         # Add gates to the gates data structure given the gate being handled
-        if th1_gate(gate, str(gate).lower(), gate_path, parent):
+        if th1_gate(gate, gate_path, parent):
             gates['Th1'] = ['CXCR3', 'CCR6']
         elif th2_gate(gate, gate_path, parent):
             gates['Th2'] = ['CCR4', 'CCR6']
@@ -244,7 +258,7 @@ def extract_data(gate, gate_path, gate_pct, mfi_comp, parent, sample, sample_id,
             gates['Th17'] = ['CCR4', 'CCR6']
         elif th1star_gate(gate, gate_path, parent):
             gates['Th1*'] = ['CCR4', 'CXCR3', 'CCR6']
-        elif tscm_gate(gate, str(gate).lower(), gate_path, parent):
+        elif tscm_gate(gate, gate_path, parent):
             gates['Tscm'] = ['CD45RA', 'CCR7', 'CD95']
         elif len(gate.strip().split(' ')) > 1:
             check_gate_suffix(gate, gates)
@@ -315,7 +329,7 @@ def th1star_gate(gate, gate_path, parent):
     """
 
     return 'th1+' in str(gate).lower() or 'th1*' in str(gate).lower() or (
-                (gate == 'CCR4+ CXCR3+' and parent == 'CCR6+') and 'CD4+' in gate_path)
+            (gate == 'CCR4+ CXCR3+' and parent == 'CCR6+') and 'CD4+' in gate_path)
 
 
 def th17_gate(gate, gate_path, parent):
@@ -342,7 +356,7 @@ def th2_gate(gate, gate_path, parent):
     return 'th2' in str(gate).lower() or ((gate == 'CCR4+' and parent == 'CCR6-') and 'CD4+' in gate_path)
 
 
-def th1_gate(gate, gate_str, gate_path, parent):
+def th1_gate(gate, gate_path, parent):
     """
         Checks if the gate being handled is the Th1 gate
         :param gate: the gate being handled
@@ -352,11 +366,12 @@ def th1_gate(gate, gate_str, gate_path, parent):
         :return: true if it is, false otherwise
     """
 
-    th1 = 'th1' in gate_str and 'th17' not in gate_str and 'th1+' not in gate_str and 'th1*' not in gate_str
+    th1 = 'th1' in str(gate).lower() and 'th17' not in str(gate).lower() and 'th1+' not in str(
+        gate).lower() and 'th1*' not in str(gate).lower()
     return th1 or ((gate == 'CXCR3+' and parent == 'CCR6-') and 'CD4+' in gate_path)
 
 
-def tscm_gate(gate, gate_str, gate_path, parent):
+def tscm_gate(gate, gate_path, parent):
     """
         Checks if the gate being handled is the Tscm gate
         :param gate: the gate being handled
@@ -366,7 +381,7 @@ def tscm_gate(gate, gate_str, gate_path, parent):
         :return: true if it is, false otherwise
     """
 
-    return 'tscm' in gate_str or ((gate == 'CD45RA+ CCR7+' and parent == 'CD95+') and 'CD8+' in gate_path)
+    return 'tscm' in str(gate).lower() or ((gate == 'CD45RA+ CCR7+' and parent == 'CD95+') and 'CD8+' in gate_path)
 
 
 def thoming_gate_of_interest(gate, gate_path):
@@ -383,10 +398,15 @@ def thoming_gate_of_interest(gate, gate_path):
     tscm_gate = 'tscm' in gate_str or ((gate == 'CD45RA+ CCR7+' and parent == 'CD95+') and 'CD8+' in gate_path)
     return tscm_gate or \
         (((th1_gate or 'th2' in gate_str or 'th1*' in gate_str or 'th1+' in gate_str or 'th17' in gate_str) or
-        (gate == 'CCR4+ CXCR3+' and parent == 'CCR6+') or # Th1*
-        (gate == 'CCR4+' and parent == 'CCR6+') or # Th17
-        (gate == 'CCR4+' and parent == 'CCR6-') or # Th2
-        (gate == 'CXCR3+' and parent == 'CCR6-')) and 'CD4+' in gate_path) # Th1
+          (gate == 'CCR4+ CXCR3+' and parent == 'CCR6+') or  # Th1*
+          (gate == 'CCR4+' and parent == 'CCR6+') or  # Th17
+          (gate == 'CCR4+' and parent == 'CCR6-') or  # Th2
+          (gate == 'CXCR3+' and parent == 'CCR6-')) and 'CD4+' in gate_path)  # Th1
+
+
+def write_sample_id(sample_id):
+    with open('Samples/sample_ids.txt', 'a') as f:
+        f.write(f'{sample_id[:-4]}\n')
 
 
 def analyze(wsp_file, analysis, pre):
@@ -419,6 +439,8 @@ def analyze(wsp_file, analysis, pre):
     for sample_id in sample_list:
         print("##################################################")
         print(f'\nSAMPLE {sample_id}\n')
+
+        write_sample_id(sample_id)
 
         # Get the sample from its ID
         sample = wsp.get_sample(sample_id)
@@ -512,7 +534,8 @@ def analyze(wsp_file, analysis, pre):
                 lag3_gate_name_plus = lag3_gate_name
 
             labels_dict_tcell = {
-                1: {'CD45RA': 0, 'CD57': 1, 'CD45': 2, precursor_gate_name: 3, lag3_gate_name_plus.strip(): 4, 'CD95': 6, 'CD4': 7, 'CD8': 8,
+                1: {'CD45RA': 0, 'CD57': 1, 'CD45': 2, precursor_gate_name: 3, lag3_gate_name_plus.strip(): 4,
+                    'CD95': 6, 'CD4': 7, 'CD8': 8,
                     'CD3': 10, 'CCR7': 11, 'CD28': 12, 'CD27': 13, 'PD-1': 14},
                 2: {'CD103': 1, 'CD39': 3, 'GD': 5, 'CCR7': 7, 'CD69': 9, '4-1BB': 11, 'CD45RA': 13, 'CD3': 15,
                     'CD4': 17, 'CD8': 19, precursor_gate_name: 21, lag3_gate_name_plus.strip(): 23, 'CD95': 25},
@@ -539,7 +562,8 @@ def analyze(wsp_file, analysis, pre):
                                         'CD4+/CD95+', f'CD4+/{lag3_gate_name}', 'CD4+/CD103+',
                                         f'CD8+/{tcm_gate_name}',
                                         f'CD8+/{tem_gate_name}', f'CD8+/{teff_gate_name}',
-                                        'CD8+/CD95+', f'CD8+/{lag3_gate_name}', 'CD8+/CD103+', f'GD+/{tcm_gate_name}', f'GD+/{tem_gate_name}',
+                                        'CD8+/CD95+', f'CD8+/{lag3_gate_name}', 'CD8+/CD103+', f'GD+/{tcm_gate_name}',
+                                        f'GD+/{tem_gate_name}',
                                         f'GD+/{teff_gate_name}', 'GD+/CD95+', f'GD+/{lag3_gate_name}', 'GD+/CD103+']
 
                 # The gates we want to extract data from
@@ -549,7 +573,8 @@ def analyze(wsp_file, analysis, pre):
                     for gate_id, gate_path in wsp.get_gate_ids(sample_id):
                         # if the gate id is a gate of interest, the last item in the gate path is the parent
                         # and the gate is a descendant of the CD3+ gate
-                        if gate in gate_id and gate_path[-1] == parent and 'CD3+' in gate_path:
+                        if gate in gate_id and gate_path[-1] == parent and 'CD3+' in gate_path \
+                                or str(gate) == 'CD39- CD69-':
                             extract_data(gate, gate_path, gate_pct, mfi_comp, parent, sample,
                                          sample_id, sample_results, wsp, labels_dict_tcell)
 
@@ -558,8 +583,8 @@ def analyze(wsp_file, analysis, pre):
                 for gate, gate_path in wsp.get_gate_ids(sample_id):
                     # Use everything except (CD4+ CD8+), all gates that have 2 minus (-) signs
                     # and all gates with no child gates
-                    if gate != 'CD4+ CD8+' and 'CD4+ CD8+' not in gate_path and str(gate).count('-') != 2\
-                            and not wsp.get_child_gate_ids(sample_id, gate, gate_path):
+                    if gate != 'CD4+ CD8+' and 'CD4+ CD8+' not in gate_path and str(gate).count('-') != 2 \
+                            and not wsp.get_child_gate_ids(sample_id, gate, gate_path) or str(gate) == 'CD39- CD69-':
                         parent = gate_path[-1]
                         extract_data(gate, gate_path, gate_pct, mfi_comp, parent, sample,
                                      sample_id, sample_results, wsp, labels_dict_tcell)
@@ -613,12 +638,13 @@ def analyze(wsp_file, analysis, pre):
                 else:
                     dot.edge(gate_path[i], gate_path[i + 1])
         dot.format = 'png'
-        dot.render(directory=f'Samples/{pre}_{analysis}/{sample_id_path}_{date}')\
+        dot.render(directory=f'Samples/{pre}_{analysis}/{sample_id_path}_{date}') \
             .replace('\\', '/')
 
         # if the mfi dataframe is not empty (i.e. we found gates of interest)
         if mfi_comp:
-            with open(f'{os.getcwd()}/Samples/{pre}_{analysis}/{sample_id_path}_{date}/{sample_id_path}_mfi.csv', 'w', newline='\n') as f:
+            with open(f'{os.getcwd()}/Samples/{pre}_{analysis}/{sample_id_path}_{date}/{sample_id_path}_mfi.csv', 'w',
+                      newline='\n') as f:
                 writer = csv.DictWriter(f, fieldnames=mfi_comp.keys())
                 writer.writeheader()
                 writer.writerow(mfi_comp)
@@ -630,7 +656,8 @@ def analyze(wsp_file, analysis, pre):
 
         # if the gate percentages dictionary is not empty (i.e. we found gates of interest)
         if gate_pct:
-            with open(f'Samples/{pre}_{analysis}/{sample_id_path}_{date}/{sample_id_path}_gate_percentages.csv', 'w', newline='\n') as f:
+            with open(f'Samples/{pre}_{analysis}/{sample_id_path}_{date}/{sample_id_path}_gate_percentages.csv', 'w',
+                      newline='\n') as f:
                 writer = csv.DictWriter(f, fieldnames=gate_pct.keys())
                 writer.writeheader()
                 writer.writerow(gate_pct)
@@ -652,15 +679,18 @@ base_dir = "Data/DATA_Raw_files/FLOW"
 gd_gate_aliases = ['Gamma delta + ', 'GD+', 'TCRgd+', 'TCR gd+', 'gd+']
 ifng_gate_aliases = ['INFg+', 'IFN-g+']
 lag3_gate_aliases = ['LAG3+', 'LAG3', 'LAG-3 +', 'Lag3+']
-tcm_gate_aliases = [ 'TCM CD45RA- CCR7+', 'TCM']
+tcm_gate_aliases = ['TCM CD45RA- CCR7+', 'TCM']
 teff_gate_aliases = ['Teff CD45RA+ CCR7-', 'Teff', 'TEFF']
 tem_gate_aliases = ['TEM CD45RA- CCR7-', 'TEM']
-precursor_gate_aliases = ['precursors', 'precursor', 'Precursor', 'PRECURSOR', 'Naive CD45RA+ CCR7+', 'Live Dead', 'Live-Dead']
+precursor_gate_aliases = ['precursors', 'precursor', 'Precursor', 'PRECURSOR', 'Naive CD45RA+ CCR7+', 'Live Dead',
+                          'Live-Dead']
 
 if __name__ == '__main__':
 
     if os.path.exists(f'{os.getcwd()}/Samples'):
         shutil.rmtree(f'{os.getcwd()}/Samples', ignore_errors=True)
+
+    os.mkdir('Samples')
 
     wsp_files = get_wsp_files(base_dir)
 

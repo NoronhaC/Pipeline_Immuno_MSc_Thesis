@@ -35,7 +35,7 @@ def get_group_avg(avg, gate_list, group):
 
 
 ics_gate_list = ['CD4+', 'CD8+']
-tcell_gate_list = ['precursor', 'TCM', 'TEM', 'TEFF', 'CD103+', 'CD95+', 'CD39+ CD69+']
+tcell_gate_list = ['precursor', 'TCM', 'TEM', 'TEFF', 'CD103+', 'CD95+', 'CD39+ CD69+', 'CD39- CD69-']
 thoming_gate_list = ['Th1', 'Th2', 'Th17', 'Tscm']
 
 ics_data = get_comp_data(ics_gate_list, 'ICS')
@@ -86,17 +86,19 @@ for key, dataset in final_data.items():
     iterator = iter(all_std)
 
     for p in ax.patches:
-        if p.get_height() > 0:
-            rect_x = p.get_x()  # get the bottom left x corner of the bar
-            rect_y = p.get_y()
-            w = p.get_width()  # get width of bar
-            h = p.get_height()  # get height of bar
+        rect_x = p.get_x()  # get the bottom left x corner of the bar
+        rect_y = p.get_y()
+        w = p.get_width()  # get width of bar
+        h = p.get_height()  # get height of bar
+        if h > 0:
             rect_std = next(iterator)
             min_y = h - rect_std  # use h to get min from dict z
             max_y = h + rect_std  # use h to get max from dict z
             plt.vlines(rect_x + w / 2, min_y, max_y, color='k')  # draw a vertical line
             plt.hlines(max_y, (rect_x + w / 2) - w / 4, (rect_x + w / 2) + w / 4, color='k')
             plt.hlines(min_y, (rect_x + w / 2) - w / 4, (rect_x + w / 2) + w / 4, color='k')
+        else:
+            plt.text(rect_x + w / 4, rect_y, "n.a.", fontsize=15)
 
     plt.xlabel("Gates", fontsize=20)
     plt.ylabel("Gate Percentages", fontsize=20)

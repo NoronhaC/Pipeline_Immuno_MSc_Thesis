@@ -35,9 +35,9 @@ def get_data(prefix, group, analysis, data_type):
     """
         Get the data given the conditions
     :param prefix: FLOW or ELISA
-    :param group: the group in which the prefix divides
+    :param group: ICS, Tcell or Thoming
     :param analysis: PBMCs, TILs or WBA
-    :param data_type: gate mfi, gate percentages
+    :param data_type: gate_mfi or gate_pct
     :return: the data, as a list
     """
     if prefix.upper() == 'ELISA':
@@ -55,17 +55,17 @@ def get_gate_data(gate, prefix, group, analysis, data_type):
     """
         Get data from a specific gate
     :param gate: the gate
-    :param prefix: FLOW
+    :param prefix: FLOW or ELISA
     :param group: ICS, Tcell or Thoming
     :param analysis: PBMCs or TILs
-    :param data_type: gate percentages or gate mfi
+    :param data_type: gate_mfi or gate_pct
     :return: the data, as a list
     """
     res_data = []
     gate_data = get_data(prefix, group, analysis, data_type)
     for dict_item in gate_data:
         for key, value in dict_item.items():
-            if gate in key.lower():
+            if gate.lower() in key.lower() or gate in key.upper():
                 res_data.append({key: value})
     return res_data
 
@@ -76,7 +76,8 @@ def get_gate_data(gate, prefix, group, analysis, data_type):
 # Import Data
 
 # Build data structure
-data = {'ELISA': {'Concentrations': {'TIL': [], 'WBA': []}, 'OD': {'TIL': [], 'WBA': []}, 'Reactions': {'TIL': [], 'WBA': []}},
+data = {'ELISA': {'Concentrations': {'TIL': [], 'WBA': []}, 'OD': {'TIL': [], 'WBA': []},
+                  'Reactions': {'TIL': [], 'WBA': []}},
         'FLOW': {'ICS': {'PBMCs': {'gate_mfi': {}, 'gate_pct': {}}, 'TILs': {'gate_mfi': {}, 'gate_pct': {}}},
                  'Tcell': {'PBMCs': {'gate_mfi': {}, 'gate_pct': {}}, 'TILs': {'gate_mfi': {}, 'gate_pct': {}}},
                  'Thoming': {'PBMCs': {'gate_mfi': {}, 'gate_pct': {}}, 'TILs': {'gate_mfi': {}, 'gate_pct': {}}}
@@ -93,36 +94,37 @@ data['ELISA']['Reactions']['WBA'] = read_csv('Patients/WBA_global_peptide_reacti
 
 # Import FLOW data
 for directory in os.listdir('Samples'):
-    for item in os.listdir(os.path.join('Samples', directory)):
-        path = os.path.join('Samples', directory, item)
-        if os.path.isfile(path):
-            if 'ICS_PBMCs' in path:
-                if 'mfi' in path:
-                    data['FLOW']['ICS']['PBMCs']['gate_mfi'] = read_csv(path)
-                elif 'gate_pct' in path:
-                    data['FLOW']['ICS']['PBMCs']['gate_pct'] = read_csv(path)
-            elif 'ICS_TILs' in path:
-                if 'mfi' in path:
-                    data['FLOW']['ICS']['TILs']['gate_mfi'] = read_csv(path)
-                elif 'gate_pct' in path:
-                    data['FLOW']['ICS']['TILs']['gate_pct'] = read_csv(path)
-            elif 'Tcell_PBMCs' in path:
-                if 'mfi' in path:
-                    data['FLOW']['Tcell']['PBMCs']['gate_mfi'] = read_csv(path)
-                elif 'gate_pct' in path:
-                    data['FLOW']['Tcell']['PBMCs']['gate_pct'] = read_csv(path)
-            elif 'Tcell_TILs' in path:
-                if 'mfi' in path:
-                    data['FLOW']['Tcell']['TILs']['gate_mfi'] = read_csv(path)
-                elif 'gate_pct' in path:
-                    data['FLOW']['Tcell']['TILs']['gate_pct'] = read_csv(path)
-            elif 'Thoming_PBMCs' in path:
-                if 'mfi' in path:
-                    data['FLOW']['Thoming']['PBMCs']['gate_mfi'] = read_csv(path)
-                elif 'gate_pct' in path:
-                    data['FLOW']['Thoming']['PBMCs']['gate_pct'] = read_csv(path)
-            elif 'Thoming_TILs' in path:
-                if 'mfi' in path:
-                    data['FLOW']['Thoming']['TILs']['gate_mfi'] = read_csv(path)
-                elif 'gate_pct' in path:
-                    data['FLOW']['Thoming']['TILs']['gate_pct'] = read_csv(path)
+    if os.path.isdir(os.path.join('Samples', directory)):
+        for item in os.listdir(os.path.join('Samples', directory)):
+            path = os.path.join('Samples', directory, item)
+            if os.path.isfile(path):
+                if 'ICS_PBMCs' in path:
+                    if 'mfi' in path:
+                        data['FLOW']['ICS']['PBMCs']['gate_mfi'] = read_csv(path)
+                    elif 'gate_pct' in path:
+                        data['FLOW']['ICS']['PBMCs']['gate_pct'] = read_csv(path)
+                elif 'ICS_TILs' in path:
+                    if 'mfi' in path:
+                        data['FLOW']['ICS']['TILs']['gate_mfi'] = read_csv(path)
+                    elif 'gate_pct' in path:
+                        data['FLOW']['ICS']['TILs']['gate_pct'] = read_csv(path)
+                elif 'Tcell_PBMCs' in path:
+                    if 'mfi' in path:
+                        data['FLOW']['Tcell']['PBMCs']['gate_mfi'] = read_csv(path)
+                    elif 'gate_pct' in path:
+                        data['FLOW']['Tcell']['PBMCs']['gate_pct'] = read_csv(path)
+                elif 'Tcell_TILs' in path:
+                    if 'mfi' in path:
+                        data['FLOW']['Tcell']['TILs']['gate_mfi'] = read_csv(path)
+                    elif 'gate_pct' in path:
+                        data['FLOW']['Tcell']['TILs']['gate_pct'] = read_csv(path)
+                elif 'Thoming_PBMCs' in path:
+                    if 'mfi' in path:
+                        data['FLOW']['Thoming']['PBMCs']['gate_mfi'] = read_csv(path)
+                    elif 'gate_pct' in path:
+                        data['FLOW']['Thoming']['PBMCs']['gate_pct'] = read_csv(path)
+                elif 'Thoming_TILs' in path:
+                    if 'mfi' in path:
+                        data['FLOW']['Thoming']['TILs']['gate_mfi'] = read_csv(path)
+                    elif 'gate_pct' in path:
+                        data['FLOW']['Thoming']['TILs']['gate_pct'] = read_csv(path)

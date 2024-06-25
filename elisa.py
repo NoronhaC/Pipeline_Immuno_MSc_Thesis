@@ -140,6 +140,10 @@ for dir in os.listdir(base_dir):
                 # Filter out targets that did not react
                 targets = {k: v for k, v in plate_values.items() if v > 0 and not k.startswith('STD') and k != 'medium'}
 
+                with open('Patients/peptides.txt', 'a') as f:
+                    for peptide in targets.keys():
+                        f.write(f'{peptide}\n')
+
                 print(f'Targets Used: {list(plate_values.keys())}')
                 print(f'Targets That Reacted: {list(targets.keys())}\n')
 
@@ -185,6 +189,11 @@ for dir in os.listdir(base_dir):
                 print('RMSE:', RMSE)
                 print('R-squared:', Rsquared)
                 print()
+
+                err = y - log4pl(x, A, B, C, D)
+                print(f'Err: {err}')
+                ss = sum(np.square(err))
+                print(f'SS: {ss}')
 
                 # Plot bar chart
                 concentrations = {k: round(log4pl(v, A, B, C, D), 4) for k, v in targets.items()}
