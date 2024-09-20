@@ -1,5 +1,3 @@
-import math
-
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.lines import Line2D
@@ -21,6 +19,8 @@ def get_group_avg(avg, gate_list, group):
     for gate in gate_list:
         data_til = global_func.get_gate_data(gate, 'FLOW', group, 'TILs', 'gate_pct')
         data_pbmc = global_func.get_gate_data(gate, 'FLOW', group, 'PBMCs', 'gate_pct')
+        print(data_til)
+        print(data_pbmc)
 
         avg[gate] = {'TILs': {'mean': 0, 'std': 0}, 'PBMCs': {'mean': 0, 'std': 0}}
 
@@ -34,7 +34,7 @@ def get_group_avg(avg, gate_list, group):
             avg[gate]['PBMCs']['std'] = round(statistics.stdev(data_values), 3)
 
 
-ics_gate_list = ['CD4+', 'CD8+']
+ics_gate_list = ['CD4+', 'CD8+', 'gd+']
 tcell_gate_list = ['precursor', 'TCM', 'TEM', 'TEFF', 'CD103+', 'CD95+', 'CD39+ CD69+', 'CD39- CD69-']
 thoming_gate_list = ['Th1', 'Th2', 'Th17', 'Tscm']
 
@@ -50,7 +50,7 @@ for key, dataset in final_data.items():
     _, ax = plt.subplots(figsize=(16, 9))
 
     if key == 'ICS':
-        plt.title(f'{key} IFN-g', fontsize=30)
+        plt.title(f'{key} IFN-γ', fontsize=30)
     else:
         plt.title(f'{key}', fontsize=30)
 
@@ -100,7 +100,7 @@ for key, dataset in final_data.items():
         else:
             plt.text(rect_x + w / 4, rect_y, "n.a.", fontsize=15)
 
-    plt.xlabel("Gates", fontsize=20)
+    # plt.xlabel("Gates", fontsize=20)
     plt.ylabel("Gate Percentages", fontsize=20)
 
     plt.xticks(x, gates, rotation=30, ha="center", fontsize=20)

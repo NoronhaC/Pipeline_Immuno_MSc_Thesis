@@ -61,13 +61,23 @@ def perform_linear_regression(data_min, data_max, elisa_data, analysis, gate, el
         w.writerow(extracted_data.keys())
         w.writerow(extracted_data.values())
 
-    plt.plot(reg_array, elisa_data, 'o', label='original data')
+    plt.plot(reg_array, elisa_data, 'o', label='data points')
     plt.plot(reg_array, res.intercept + res.slope * reg_array, 'r', label='fitted line')
 
-    plt.title(f'{gate} IFN-g {analysis} VS ELISA {elisa_type}', fontsize=15)
+    if gate == 'GD':
+        plt.title(f'γδ+ IFN-γ+ {analysis} VS ELISA {elisa_type}', fontsize=15)
+    else:
+        plt.title(f'{gate}+ IFN-γ+ {analysis} VS ELISA {elisa_type}', fontsize=15)
 
-    plt.xticks([])
-    plt.yticks([])
+    # plt.xticks([])
+    # plt.yticks([])
+
+    if gate == 'GD':
+        plt.xlabel(f'% γδ+ IFN-γ+ from ICS {analysis}')
+    else:
+        plt.xlabel(f'% {gate}+ IFN-γ+ from ICS {analysis}')
+
+    plt.ylabel(f'% IFN-γ+ Supernatant Concentration from ELISA {elisa_type}', fontsize=8)
 
     plt.legend()
 
